@@ -6,3 +6,43 @@
 	margin-left:2px;
 	margin-right:2px;
 }
+.advice:last-of-type {
+	margin-right:10px;
+}
+.iconHolder {
+	display:inline-block;
+}
+
+.gamecard{
+	display: inline-block;
+	border:1px solid grey;
+	width:45px;
+	height:60px;
+	border-radius:5px;
+}
+.gamecard.played {
+	margin-left:1px;
+	margin-right:1px;
+}
+.gamecard.red {
+	background-color:red;
+}
+.gamecard.blue {
+	background-color:blue;
+}
+.gamecard.green {
+	background-color:green;
+}
+.gamecard.white {
+	background-color:white;
+}
+.gamecard.yellow {
+	background-color:yellow;
+}
+
+.playedNumber {
+	text-align:center;
+	font-size: 20pt;
+	line-height:58px;
+	vertical-align:text-bottom;
+}

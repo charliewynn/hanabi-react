@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import { Row, Col, Progress } from 'reactstrap';
 import * as LocalStorage from '../Actions/LocalStorage';
+import Card from './Card';
 import PropTypes from 'prop-types';
 import FontAwesomeIcon from '@fortawesome/react-fontawesome';
 import { faBomb } from '@fortawesome/fontawesome-free-solid';
@@ -60,6 +61,9 @@ class Game extends Component {
 		const advice = Array(this.state.playerGameState.advice||0).fill('').map((b,i)=>
 			<FontAwesomeIcon className="advice" key={i} icon={faCommentAlt} size="lg" />
 		);
+		const played = Object.keys(this.state.playerGameState.played||{}).map((c,i)=>
+			<Card key={i} color={c} number={this.state.playerGameState.played[c]} played />
+		);
 		return (
 			<div>
 				{
@@ -74,9 +78,10 @@ class Game extends Component {
 						<h3>{this.state.playerName}&#39;s Turn</h3>
 				}
 				<hr />
-				{advice}
+				{played}
 				<br />
-				{bombs}
+				<div className="iconHolder">{advice}</div>
+				<div className="iconHolder">{bombs}</div>
 				{
 					this.state.playerGameState.id && (
 						<Row id="deckLeft"><Col xs={{size : 10, offset : 1}}>
