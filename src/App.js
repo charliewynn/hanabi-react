@@ -18,7 +18,6 @@ class App extends Component {
 				}
 			}
 		}
-		console.log('gameid', gameId);
 		const currentLocalGames = Object.getOwnPropertyNames(localStorage);
 		const isLocalGame = currentLocalGames.indexOf('game'+gameId) > -1;
 		

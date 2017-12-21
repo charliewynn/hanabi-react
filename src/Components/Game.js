@@ -1,17 +1,22 @@
 import React, { Component } from 'react';
+import { Row, Col, Progress } from 'reactstrap';
 import * as LocalStorage from '../Actions/LocalStorage';
 import PropTypes from 'prop-types';
+import FontAwesomeIcon from '@fortawesome/react-fontawesome';
+import { faBomb } from '@fortawesome/fontawesome-free-solid';
+import { faCommentAlt } from '@fortawesome/fontawesome-free-regular';
 
 class Game extends Component {
 	constructor(props){
 		super(props);
-		console.log(props.isLocal);
 		const backend = props.isLocal ?
 			LocalStorage : this.noBackend;
 		this.state = {
-			backend
+			backend,
+			playerGameState : {}
 		}
 	}
+	dev=true;
 	componentDidMount(){
 		this.state.backend.load(this.props.id, this.gameLoaded.bind(this));
 	}
@@ -22,28 +27,39 @@ class Game extends Component {
 		}
 	}
 	gameLoaded(gameInit){
-		console.log("gameinit", gameInit);
-
-		this.setState({
-			countDown  : 3,
-			playerName : gameInit.players[gameInit.whosTurn].name
-		})
-		setTimeout(()=>this.countDown(),1000);
+		if(this.props.isLocal){
+			this.setState({
+				countDown  : this.dev ? 3 : 5,
+				playerName : gameInit.players[gameInit.whosTurn].name
+			})
+			setTimeout(()=>this.countDown(), this.dev ? 200 : 1000);
+		} else {
+			this.state.backend.getCurrPlayerState(this.gotCurrPlayerState.bind(this));
+		}
 	}
 	countDown(){
 		const newCountDown = this.state.countDown-1;
 		this.setState({
 			countDown : newCountDown
 		});
-		if(newCountDown > 0) setTimeout(()=>this.countDown(),1000);
+		if(newCountDown > 0) setTimeout(()=>this.countDown(), this.dev ? 200: 1000);
 		else {
 			this.state.backend.getCurrPlayerState(this.gotCurrPlayerState.bind(this));
 		}
 	}
 	gotCurrPlayerState(playerGameState) {
 		console.log("playerGameState", playerGameState);
+		this.setState({
+			playerGameState
+		});
 	}
 	render() {
+		const bombs = Array(this.state.playerGameState.bombs||0).fill('').map((b,i)=>
+			<FontAwesomeIcon key={i} icon={faBomb} size="lg" />
+		);
+		const advice = Array(this.state.playerGameState.advice||0).fill('').map((b,i)=>
+			<FontAwesomeIcon className="advice" key={i} icon={faCommentAlt} size="lg" />
+		);
 		return (
 			<div>
 				{
@@ -56,6 +72,23 @@ class Game extends Component {
 						)
 						:
 						<h3>{this.state.playerName}&#39;s Turn</h3>
+				}
+				<hr />
+				{advice}
+				<br />
+				{bombs}
+				{
+					this.state.playerGameState.id && (
+						<Row id="deckLeft"><Col xs={{size : 10, offset : 1}}>
+							<div>
+								{this.state.playerGameState.cardsInDeck} cards left
+							</div>
+							<Progress multi>
+								<Progress bar value={(50-this.state.playerGameState.cardsInDeck)*2} animated color='warning' />
+								<Progress bar value={this.state.playerGameState.cardsInDeck*2} />
+							</Progress>
+						</Col></Row>
+					)
 				}
 			</div>
 		);
