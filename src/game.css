@@ -20,18 +20,24 @@
 	height:60px;
 	border-radius:5px;
 }
+.gamecard.selected {
+	border: 2px solid black;
+}
 .gamecard.played {
 	margin-left:1px;
 	margin-right:1px;
 }
 .gamecard.red {
 	background-color:red;
+	color:white;
 }
 .gamecard.blue {
 	background-color:blue;
+	color:white;
 }
 .gamecard.green {
 	background-color:green;
+	color: white;
 }
 .gamecard.white {
 	background-color:white;
