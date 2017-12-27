@@ -10,8 +10,8 @@ class CreateGame extends Component {
 			numPlayers : 2,
 			player1    : 'Charlie',
 			player2    : 'Brittany',
-			player3    : '',
-			player4    : '',
+			player3    : 'Guy',
+			player4    : 'Jordan',
 			player5    : ''
 		};
 	}

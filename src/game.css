@@ -27,6 +27,17 @@
 	margin-left:1px;
 	margin-right:1px;
 }
+.discards .gamecard,.lastMove .gamecard {
+	width: 20px;
+	height: 30px;
+	font-size: 6px;
+}
+
+.discards .playedNumber,.lastMove .playedNumber {
+	font-size: 12pt;
+	line-height: 21pt;
+}
+
 .gamecard.red {
 	background-color:red;
 	color:white;
@@ -52,3 +63,26 @@
 	line-height:58px;
 	vertical-align:text-bottom;
 }
+
+.advise.color {
+	width: 10px;
+	height: 10px;
+	min-width: 10px;
+	min-height: 10px;
+	display: inline-block;
+	position:  absolute;
+	bottom: 3px;
+	border: 1px solid black;
+}
+.advise.red { background-color: red; }
+.advise.blue { background-color: blue; }
+.advise.green { background-color: green; }
+.advise.white { background-color: white; }
+.advise.yellow { background-color: yellow; }
+
+.advise.number {
+	position: absolute;
+	top: 1px;
+}
+
+

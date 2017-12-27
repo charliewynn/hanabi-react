@@ -11,4 +11,10 @@ HanabiDispatcher.cardSelected = function(cardProps, playerName, isYou){
 	});
 };
 
+HanabiDispatcher.moveMade = function(){
+	this.dispatch({
+		source : "MOVE_MADE"
+	});
+}
+
 export default HanabiDispatcher;

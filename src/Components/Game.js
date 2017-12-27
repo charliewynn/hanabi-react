@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Container, Row, Col, Progress } from 'reactstrap';
+import { Container, Row, Col, Progress, Button } from 'reactstrap';
 import * as LocalStorage from '../Actions/LocalStorage';
 import Card from './Card';
 import PropTypes from 'prop-types';
@@ -21,7 +21,7 @@ class Game extends Component {
 			selectedCard    : undefined
 		}
 	}
-	dev = true;
+	dev = false;
 	componentDidMount() {
 		this.state.backend.load(this.props.id, this.gameLoaded.bind(this));
 		HanabiDispatcher.register(this.eventReceived.bind(this));
@@ -40,6 +40,12 @@ class Game extends Component {
 					}
 				});
 				break;
+			case "MOVE_MADE":
+				this.setState({
+					countDown : this.dev ? 3 : 5
+				});
+				this.state.backend.getCurrPlayerState(this.gotCurrPlayerState.bind(this));
+				break;
 			default: break;
 		}
 	}
@@ -49,16 +55,14 @@ class Game extends Component {
 				alert("you tried to play a game with no backend (probably online)");
 			}
 		}
-	gameLoaded(gameInit) {
-		if (this.props.isLocal) {
-			this.setState({
-				countDown  : this.dev ? 3 : 5,
-				playerName : gameInit.players[gameInit.whosTurn].name
-			})
-			setTimeout(() => this.countDown(), this.dev ? 200 : 1000);
-		} else {
-			this.state.backend.getCurrPlayerState(this.gotCurrPlayerState.bind(this));
+	wipeGame(){
+		if(window.confirm("Permanently delete this game")){
+			LocalStorage.wipe();
+			window.location.href = window.location.href.split('?')[0];
 		}
+	}
+	gameLoaded(gameInit) {
+		this.state.backend.getCurrPlayerState(this.gotCurrPlayerState.bind(this));
 	}
 	countDown() {
 		const newCountDown = this.state.countDown - 1;
@@ -66,14 +70,21 @@ class Game extends Component {
 			countDown : newCountDown
 		});
 		if (newCountDown > 0) setTimeout(() => this.countDown(), this.dev ? 200 : 1000);
-		else {
-			this.state.backend.getCurrPlayerState(this.gotCurrPlayerState.bind(this));
-		}
 	}
+
 	gotCurrPlayerState(playerGameState) {
 		console.log("playerGameState", playerGameState);
+		if(this.props.isLocal){
+			this.setState({
+				countDown : this.dev ? 3 : 5
+			});
+			setTimeout(() => this.countDown(), this.dev ? 200 : 1000);
+		}
 		this.setState({
-			playerGameState
+			playerGameState,
+			lastMove     : playerGameState.lastMove,
+			playerName   : playerGameState.players.filter(p=>p.you)[0].name,
+			selectedCard : undefined
 		});
 	}
 	render() {
@@ -89,6 +100,65 @@ class Game extends Component {
 		const players = (this.state.playerGameState.players || []).map((p, i) =>
 			<Player key={i} {...p} />
 		);
+		let orderedDiscards = {
+			red    : [],
+			blue   : [],
+			green  : [],
+			white  : [],
+			yellow : []
+		};
+		for(let card of (this.state.playerGameState.discards||[])){
+			orderedDiscards[card.color].push(card);
+		}
+		const discards = Object.keys(orderedDiscards).map((od,i)=>
+			<div key={i}>
+				{
+					orderedDiscards[od].sort((c1,c2)=> c1.number-c2.number).map((c,j)=>
+						<Card clickHandler={()=>{}} key={j} {...c} discard />
+					)
+				}
+			</div>
+		);
+		let lastMove = '';
+		if (this.state.lastMove) {
+			switch (this.state.lastMove[0]) {
+				case "Play":
+					if (this.state.lastMove[1]) {
+						lastMove = (
+							<div className="lastMove">
+								{this.state.lastMove.slice(-1)[0]} Played a <Card discard {...this.state.lastMove[2]} />
+							</div>
+						)
+					}
+					else {
+						lastMove = (
+							<div className="lastMove">
+								{this.state.lastMove.slice(-1)[0]} Tried to play a
+								<Card discard {...this.state.lastMove[2]} />
+								but it didn&#039;t play
+							</div>
+						)
+					}
+					break;
+				case "Advise":
+					lastMove = (
+						<div>
+							{this.state.lastMove.slice(-1)[0]}
+							Told {this.state.lastMove[1]} about their {this.state.lastMove[2]}&#039;s
+						</div>
+					)
+					break;
+				case "Discard":
+					lastMove = (
+						<div className="lastMove">
+							{this.state.lastMove.slice(-1)[0]} Discarded a
+							<Card discard {...this.state.lastMove[1]} />
+						</div>
+					)
+					break;
+				default: break;
+			}
+		}
 		return (
 			<div>
 				{
@@ -97,19 +167,30 @@ class Game extends Component {
 							<div>
 								<h1>Preparing for {this.state.playerName}&#39;s Turn </h1>
 								<h1>{this.state.countDown}</h1>
+								{lastMove}
 							</div>
 						)
 						:
-						<h3>{this.state.playerName}&#39;s Turn</h3>
-				}
-				{players}
-				<br />
-				{
-					this.state.selectedCard &&
-					<SelectedCard id={this.state.selectedCard} {...this.state.selectedCardProps} />
+						(
+							<div>
+								<h3>{this.state.playerName}&#39;s Turn</h3>
+								{players}
+								<br />
+								{
+									this.state.selectedCard &&
+									<SelectedCard id={this.state.selectedCard}
+										{...this.state.selectedCardProps}
+										advise={this.state.playerGameState.advice} />
+								}
+							</div>
+						)
 				}
 				<hr />
-				<br />
+				<div className="discards">
+					<h3>Discards</h3>
+					{discards}
+				</div>
+				<h3>Played Cards</h3>
 				{played}
 				<br />
 				<div className="iconHolder">{advice}</div>
@@ -131,6 +212,11 @@ class Game extends Component {
 						</Container>
 					)
 				}
+				{this.props.isLocal && (
+					<div>
+						<Button onClick={this.wipeGame.bind(this)} color="danger">Wipe Game</Button>
+					</div>
+				)}
 			</div>
 		);
 	}
